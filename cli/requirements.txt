@@ -1,0 +1,5 @@
+web3>=6.0.0
+click>=8.1.0
+python-dotenv>=1.0.0
+# Optional — only needed for the `deploy` command:
+# py-solc-x>=0.10.0
