@@ -4,7 +4,7 @@ Reference implementation for the blockchain governance framework described in:
 
 > **Distributed Ethics: A Blockchain Governance Framework for AI Deployment**  
 > Pete Sherratt, 2025  
-> SSRN Working Paper · Abstract ID [6719078](https://ssrn.com/abstract=6719078)
+> Zenodo Working Paper · Abstract ID https://doi.org/10.5281/zenodo.20179590
 
 This repository contains two components:
 
