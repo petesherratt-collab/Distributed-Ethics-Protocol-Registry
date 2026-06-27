@@ -1,0 +1,52 @@
+# Distributed-Ethics-Protocol-Registry — TODO
+
+> Working backlog for petesherratt-collab/Distributed-Ethics-Protocol-Registry.
+> **What this is:** The *real* on-chain reference implementation of the Distributed Ethics framework (the thing `distributed-ethics-site2` only demonstrates locally). A Solidity contract (`contracts/ProtocolRegistry.sol`) publishes SHA-256 fingerprints of ethics-protocol documents to a public blockchain; a Python CLI (`cli/ethics_verify.py`) registers and verifies local docs against the immutable on-chain record. Defaults to Sepolia testnet. Backs the paper (Zenodo DOI in README is **stale — needs updating**, see §5; SSRN 6719078). MIT.
+> Status markers: `[ ]` open · `[~]` in progress · `[x]` done · `[!]` blocked.
+> Last reviewed: 2026-06-26
+
+---
+
+## 0. Current state
+
+Well-built and security-aware. Verified clean: no `.env` committed, `.env.example` is a proper template with empty `0x` placeholders and explicit "never commit" warnings, no hardcoded private keys in the CLI, defaults to Sepolia (testnet, not mainnet). Contract stores only hash + authority address + name + timestamp — no document content, no PII. This repo is in good shape; the backlog is one real safety gap plus optional extensions named in the paper.
+
+## 1. Key safety — the one thing that must not go wrong (this repo handles a wallet private key)
+
+- [ ] **Add a `.gitignore` NOW, before any real `.env` exists.** Confirmed: there is currently **no `.gitignore`** in the repo. This repo documents a `.env` holding `REGISTRY_PRIVATE_KEY` — a wallet key that authorises on-chain registrations. The day you create a real `.env` without a `.gitignore`, one `git add .` can commit the key to a public repo. Add `.gitignore` with at least: `.env`, `.env.*`, `!.env.example`, `__pycache__/`, `*.pyc`, `build/`, `.venv/`. **Highest-priority item in the whole repo set.**
+- [ ] **If a key is ever committed, treat it as burned.** Standing rule for this repo: a private key that touches a public repo (even briefly, even reverted) is compromised — generate a new wallet, never reuse it. Worth a line in the README.
+- [ ] **Keep register/deploy keys on a dedicated low-value wallet.** The issuing-authority key should live on a wallet that holds only testnet ETH (or minimal mainnet gas), never a personal wallet with real holdings.
+
+## 2. Testnet → mainnet decision (governs everything's credibility)
+
+- [ ] **Decide whether this stays on Sepolia or goes to a persistent chain.** Sepolia is a testnet — registrations are *not permanent* (testnets get reset/deprecated; Sepolia itself will eventually sunset). The framework's entire claim is *immutable, permanent, publicly verifiable* records. A testnet deployment demonstrates the mechanism but cannot deliver the permanence the paper promises.
+  - Options to weigh: keep Sepolia + label it clearly as a demonstration; move to a low-cost persistent L2 (Polygon, Base, Arbitrum) for real permanence at low gas; or document both ("demo on Sepolia, production target = L2 X").
+  - This is the credibility-defining decision for the repo — make it explicit rather than letting "it's on Sepolia" be an unstated limitation.
+
+## 3. Paper-named extensions (the "natural next" work the README itself flags)
+
+These are described in the paper but **not yet implemented here**. Each is a real build, optional, do if/when the framework needs to scale:
+
+- [ ] **Merkle Tree batcher (§4.4)** — for agent-scale deployments, batch many protocol hashes under one on-chain root instead of one tx per document. The scaling story for many-agent systems.
+- [ ] **Session summary hash chain (Appendix B)** — the AI Psychologist / Child Safety Sentinel's longitudinal record: a tamper-evident chain of session-summary hashes. This is the on-chain backbone the Sentinel tool on `distributed-ethics-site2` would need to be real rather than single-session.
+- [ ] **Agent-native blockchain verification (§2.5)** — let an AI agent run the verify step itself as part of its loop, rather than a human running the CLI.
+
+## 4. Robustness & usability
+
+- [ ] **RPC reliability.** Default `https://rpc.sepolia.org` is a free public endpoint — rate-limited and occasionally flaky. README already suggests Infura/Alchemy; consider making that the documented default for anyone actually using it.
+- [ ] **Verify-in-CI story.** The `verify` command exits 0/1 for deployment scripts — good. Worth a short documented example (a CI snippet) since "governance check in your deploy pipeline" is the actual use case, and a worked example sells it.
+- [ ] **Contract test coverage.** Confirm there are tests for `ProtocolRegistry.sol` (immutability, version history, access control on register). For a contract whose whole value is trust, untested = unproven. Add if missing.
+
+## 5. Cross-repo
+
+- [ ] **Reconcile with `distributed-ethics-site2`.** The site does *local* SHA-256; this repo does *on-chain*. Decide the relationship: should the site's governance actually call this registry (making its "we are governed" claim chain-backed rather than local), or do they stay separate (site = demo, this = implementation)? Either is valid — but state it, since right now a visitor can't tell which.
+- [ ] **Zenodo link is out of date — new one needed.** The README cites Zenodo `10.5281/zenodo.20179590` (and SSRN 6719078), but this DOI is stale and needs replacing with the current record. Update the README citation (and the "Relationship to the paper" section) to the new Zenodo DOI once minted. Note `distributed-ethics-site2` cites a *different* DOI (`20412543`) — settle which is current and make both repos cite the same, correct one.
+- [ ] **Canonical DOI/paper sync.** Beyond the stale link above: confirm one canonical paper version and ensure every reference to it (this repo, the site, the SSRN abstract) points to the same place.
+
+---
+
+### Quick status
+
+- **Do first, non-negotiable:** §1 — add the `.gitignore` before a real `.env` ever exists. This is the single highest-stakes housekeeping item across all your repos, because the secret here is a wallet key on a public repo.
+- **The credibility decision:** §2 — testnet vs. persistent chain determines whether this delivers the permanence the paper claims or only demonstrates it.
+- **Optional growth:** §3 — the three paper-named extensions, built when the framework needs to scale.
